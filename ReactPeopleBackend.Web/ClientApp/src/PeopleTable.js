@@ -6,6 +6,7 @@ import AddPersonForm from "./AddPersonForm";
 class PeopleTable extends React.Component{
     state = {
              people: [],
+             peopleDelete:[],
              person:{
                  firstName:'',
                  lastName:'',
@@ -63,9 +64,29 @@ class PeopleTable extends React.Component{
     onCancelClick = () => {
         this.setState({ editing: false, person: { firstName: '', lastName: '', age: '' } });
     }
-    
+    onCheckboxClick = (person) => {
+        const { peopleDelete } = this.state;
+        if (peopleDelete.includes(person)) {
+            this.setState({ peopleDelete: peopleDelete.filter(p => p.id !== person.id) });
+        }
+        else {
+            const copy = [...peopleDelete, person];
+            this.setState({ peopleDelete: copy });
+        }
+    }
+    checkAll = () => {
+        const copy = [...this.state.people];
+        this.setState({ peopleDelete: copy });
+    }
+    uncheckAll = () => {
+        this.setState({ peopleDelete: [] })
+    }
+    deleteAll = () => {
+        (this.state.peopleDelete && this.state.peopleDelete.forEach(p => axios.post('/api/people/delete', p).then(() => {
+            this.getAll();
+        })))
   
-
+    }
 
                 
             
@@ -83,6 +104,11 @@ class PeopleTable extends React.Component{
                 <table className='table table-hover table-bordered table-striped'>
                     <thead>
                         <tr>
+                        <th>
+                                    <button className="btn btn-danger btn-block" onClick={this.deleteAll}>Delete All Checked</button>
+                                    <button className="btn btn-info btn-block" onClick={this.checkAll} >Check All</button>
+                                    <button className="btn btn-info btn-block" onClick={this.uncheckAll}>Uncheck All</button>
+                                </th>
                             <td>First Name</td>
                             <td>Last Name</td>
                             <td>Age</td>
@@ -93,6 +119,8 @@ class PeopleTable extends React.Component{
                           {people.map(p => <PersonRow
                           onDeleteClick={() => this.onDeleteClick(p)} 
                           onEditClick={() => this.onEditClick(p)}
+                          checked={this.state.peopleDelete.includes(p)}
+                          onCheckboxClick={() => this.onCheckboxClick(p)} 
                           person={p} key={p.id}/>)}
                     </tbody>
                 </table>
@@ -100,5 +128,7 @@ class PeopleTable extends React.Component{
         )
     }
 }
+
+
 export default PeopleTable;
   
